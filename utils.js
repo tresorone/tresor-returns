@@ -39,7 +39,7 @@ function getDateArr (interval) {
   const endDate = new Date(parse(interval.end, 'yyyy-MM-dd', new Date()))
   const eachDay = eachDayOfInterval({ start: startDate, end: endDate })
 
-  const dateArr = eachDay.map((d, i) => format(d, 'yyyy-MM-dd'))
+  const dateArr = eachDay.map((d, i) => d.toString().split('T')[0])
 
   return dateArr
 }
