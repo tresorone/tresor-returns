@@ -7,8 +7,8 @@ const quotes = require('./fixtures/quotes.json')
 
 const calcValueHistory = require('../../src/calcValueHistory')
 
-const activitiesFilered = activities.filter(a => ['Buy', 'Sell', 'split'].includes(a.type))
-const activitiesByHolding = groupBy(activitiesFilered, 'holding')
+const activitiesFiltered = activities.filter(a => ['Buy', 'Sell', 'split'].includes(a.type))
+const activitiesByHolding = groupBy(activitiesFiltered, 'isin')
 
 function getEarliestActivity (values) {
   const earliest = minBy(values, x => new Date(x.date)) || {}
