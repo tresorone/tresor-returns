@@ -1,11 +1,9 @@
-const partition = require('lodash/partition')
-const { isBefore } = require('date-fns')
 const Big = require('big.js')
 
 const calcCurrentShares = require('./calcCurrentShares')
 const { applySplitMultiplier, getDateArr, normalizeQuotes } = require('../utils')
 
-module.exports = function (activities, quotes, interval, i) {
+module.exports = function (activities, quotes, interval) {
   if (activities.length === 0) {
     return {
       history: [],
@@ -16,15 +14,7 @@ module.exports = function (activities, quotes, interval, i) {
   // adjust shares bought/sold by splits that happened in the past
   activities = applySplitMultiplier(activities)
 
-  const startDate = new Date(interval.start)
-  const [activitiesBeforeInterval, activitiesInInterval] = partition(
-    activities,
-    a => isBefore(new Date(a.date), startDate)
-  )
-
   // console.table(activitiesInInterval);
-
-  const sharesAtStart = calcCurrentShares(activitiesBeforeInterval)
 
   // create an array of all days from today to the first activity
   const dateArrFull = getDateArr(interval)
@@ -42,10 +32,9 @@ module.exports = function (activities, quotes, interval, i) {
   // get normalized quotes (so every day of dateArr has a price)
   const quotesNormalized = normalizeQuotes(quotes, dateArr)
 
-  let sharesStorage = Big(sharesAtStart)
-  const sharesOfHolding = dateArr.map((d, i) => {
-    const day = d
-    const todaysActivities = activitiesInInterval.filter(a => day === a.date)
+  let sharesStorage = Big(0)
+  const sharesOfHolding = dateArr.map((day, i) => {
+    const todaysActivities = activities.filter(a => day === a.date)
     const sharesDelta = calcCurrentShares(todaysActivities)
 
     const todaysShares = sharesStorage.plus(Big(sharesDelta))
