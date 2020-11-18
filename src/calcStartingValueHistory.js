@@ -23,8 +23,6 @@ module.exports = function (activities, interval, priceAtStart) {
 
   const dateArr = getDateArr(interval)
 
-  console.log(priceAtStart, sharesAtStart)
-
   // this is the holding position and the beginning of the interval, wrapped as a Buy activity
   const beforeIntervalActivity = {
     type: 'Buy',
@@ -34,13 +32,11 @@ module.exports = function (activities, interval, priceAtStart) {
     amount: priceAtStart * sharesAtStart
   }
 
-  const gainHistory = dateArr.map((d, i) => {
+  const startValueHistory = dateArr.map((d, i) => {
     const [activitiesUntilNow] = partition(
       activitiesInInterval,
       a => !isAfter(new Date(a.date), new Date(d))
     )
-
-    console.log(activitiesUntilNow.length)
 
     // interval data, including the purchases before the interval as one starting purchase activity
     const { purchases: purchasesForInterval } = calcInventoryPurchasesFIFO([
@@ -58,6 +54,6 @@ module.exports = function (activities, interval, priceAtStart) {
 
   return {
     dates: dateArr,
-    gainHistory
+    startValueHistory
   }
 }

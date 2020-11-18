@@ -1,6 +1,6 @@
 const calcCurrentShares = require('./src/calcCurrentShares')
 const calcValueHistory = require('./src/calcValueHistory')
-const calcGainHistory = require('./src/calcGainHistory')
+const calcStartingValueHistory = require('./src/calcStartingValueHistory')
 const calcInventoryPurchasesFIFO = require('./src/calcInventoryPurchasesFIFO')
 const calcPurchasePrice = require('./src/calcPurchasePrice')
 const utils = require('./utils')
@@ -10,6 +10,6 @@ module.exports = {
   calcPurchasePrice,
   calcCurrentShares,
   calcValueHistory,
-  calcGainHistory,
+  calcStartingValueHistory,
   utils
 }
