@@ -17,13 +17,17 @@ module.exports = function calcInventoryPurchasesFIFO (activities, startDate) {
   // the capital that was withdrawn that way within the interval
   // as it's properly looping through FIFO style already
 
-  const sales = cloneDeep(reverse(filter(activities, { type: 'Sell' })))
-  const purchases = cloneDeep(reverse(filter(activities, { type: 'Buy' })))
+  const sales = cloneDeep(
+    reverse(activities.filter(a => ['Sell', 'TransferOut'].includes(a.type)))
+  )
+  const purchases = cloneDeep(
+    reverse(activities.filter(a => ['Buy', 'TransferIn'].includes(a.type)))
+  )
 
   let realized = 0
   let capitalWithdrawn = 0
 
-  sales.forEach(({ shares, price, date }) => {
+  sales.forEach(({ shares, price, date, type }) => {
     // loop through each sale, then subtract the sold shares from the first buy(s)
     // That's the FIFO principle (First in first out)
 
@@ -40,7 +44,11 @@ module.exports = function calcInventoryPurchasesFIFO (activities, startDate) {
 
       // only count the realized gain if it was inside the given interval
       if (!isBefore(new Date(date), startDate)) {
-        realized += (price - buyPrice) * Math.min(buyShares, sellShares)
+        // TransferOut does not create "realized Gains"
+        if (type === 'Sell') {
+          realized += (price - buyPrice) * Math.min(buyShares, sellShares)
+        }
+
         capitalWithdrawn += buyPrice * Math.min(buyShares, sellShares)
       }
 

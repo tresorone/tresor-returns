@@ -3,11 +3,7 @@ const filter = require('lodash/filter')
 const find = require('lodash/find')
 const keyBy = require('lodash/keyBy')
 const Big = require('big.js')
-const {
-  format,
-  eachDayOfInterval,
-  parse, isAfter
-} = require('date-fns')
+const { format, eachDayOfInterval, parse, isAfter } = require('date-fns')
 
 function applySplitMultiplier (activities) {
   activities = cloneDeep(activities)
@@ -21,8 +17,8 @@ function applySplitMultiplier (activities) {
   splits.forEach(s => {
     const activitiesBeforeSplit = filter(
       activities,
-      (a) =>
-        ['Buy', 'Sell'].includes(a.type) &&
+      a =>
+        ['Buy', 'Sell', 'TransferIn', 'TransferOut'].includes(a.type) &&
         isAfter(new Date(s.date), new Date(a.date))
     )
 
@@ -65,7 +61,7 @@ function normalizeQuotes (quotes = [], dates) {
 
       // Fills empty starting values by take the first empty elements of the array and fill in the first price that was found.
       if (!priceFound) {
-        quotesPerDay.slice(0, i).map(q => q.price = price);
+        quotesPerDay.slice(0, i).map(q => (q.price = price))
         priceFound = true
       }
     }

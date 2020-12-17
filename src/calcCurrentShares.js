@@ -15,8 +15,10 @@ module.exports = function calcCurrentShares (activities) {
       activities,
       (sum, x) => {
         switch (x.type) {
+          case 'TransferIn':
           case 'Buy':
             return sum.plus(Big(x.shares))
+          case 'TransferOut':
           case 'Sell':
             return sum.minus(Big(x.shares))
           default:

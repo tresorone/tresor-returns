@@ -6,8 +6,16 @@ const quotes = require('./fixtures/quotes.json')
 
 const calcValueHistory = require('../../src/calcValueHistory')
 
-const activitiesFilered = activities
-  .filter(a => ['Buy', 'Sell', 'split'].includes(a.type))
+const activitiesFilered = activities.filter(a =>
+  [
+    'Buy',
+    'Sell',
+    'split',
+    'reversesplit',
+    'TransferIn',
+    'TransferOut'
+  ].includes(a.type)
+)
 
 const activitiesByHolding = groupBy(activitiesFilered, 'holding')
 
@@ -21,19 +29,21 @@ function getEarliestActivity (values) {
 
 const start = new Date()
 
-Object.entries(activitiesByHolding).forEach(([holdingId, activitiesOfHolding]) => {
-  activitiesOfHolding = orderBy(activitiesOfHolding, 'date', 'desc').reverse()
-  const quotesOfHolding = quotes[holdingId]
-  const earliestActivity = getEarliestActivity(activitiesOfHolding)
-  const now = format(new Date(), 'yyyy-MM-dd')
+Object.entries(activitiesByHolding).forEach(
+  ([holdingId, activitiesOfHolding]) => {
+    activitiesOfHolding = orderBy(activitiesOfHolding, 'date', 'desc').reverse()
+    const quotesOfHolding = quotes[holdingId]
+    const earliestActivity = getEarliestActivity(activitiesOfHolding)
+    const now = format(new Date(), 'yyyy-MM-dd')
 
-  const interval = {
-    start: earliestActivity,
-    end: now
+    const interval = {
+      start: earliestActivity,
+      end: now
+    }
+
+    calcValueHistory(activitiesOfHolding, quotesOfHolding, interval)
   }
-
-  calcValueHistory(activitiesOfHolding, quotesOfHolding, interval)
-})
+)
 
 const end = new Date()
 const total = end - start
