@@ -16,7 +16,7 @@ module.exports = function (activities, interval, priceAtStart) {
   const startDate = new Date(interval.start)
   const [activitiesBeforeInterval, activitiesInInterval] = partition(
     activities,
-    a => isBefore(new Date(a.date), startDate)
+    a => !isAfter(new Date(a.date), startDate)
   )
 
   const sharesAtStart = calcCurrentShares(activitiesBeforeInterval)
