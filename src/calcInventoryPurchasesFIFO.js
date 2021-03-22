@@ -1,6 +1,5 @@
 const cloneDeep = require('lodash/cloneDeep')
-const reverse = require('lodash/reverse')
-const filter = require('lodash/filter')
+const orderBy = require('lodash/orderBy')
 
 const Big = require('big.js')
 
@@ -18,10 +17,10 @@ module.exports = function calcInventoryPurchasesFIFO (activities, startDate) {
   // as it's properly looping through FIFO style already
 
   const sales = cloneDeep(
-    reverse(activities.filter(a => ['Sell', 'TransferOut'].includes(a.type)))
+    orderBy(activities.filter(a => ['Sell', 'TransferOut'].includes(a.type)), ['date'], ['asc'])
   )
   const purchases = cloneDeep(
-    reverse(activities.filter(a => ['Buy', 'TransferIn'].includes(a.type)))
+    orderBy(activities.filter(a => ['Buy', 'TransferIn'].includes(a.type)), ['date'], ['asc'])
   )
 
   let realized = 0
