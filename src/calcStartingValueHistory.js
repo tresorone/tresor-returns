@@ -1,6 +1,6 @@
 const partition = require('lodash/partition');
 const sumBy = require('lodash/sumBy');
-const isAfter = require('date-fns/isAfter');
+const isBefore = require('date-fns/isBefore');
 
 const calcInventoryPurchasesFIFO = require('./calcInventoryPurchasesFIFO');
 const calcCurrentShares = require('./calcCurrentShares');
@@ -13,9 +13,8 @@ module.exports = function (activities, interval, priceAtStart) {
   activities = applySplitMultiplier(activities);
 
   const startDate = new Date(interval.start);
-  const [activitiesBeforeInterval, activitiesInInterval] = partition(
-    activities,
-    (a) => !isAfter(new Date(a.date), startDate),
+  const [activitiesBeforeInterval, activitiesInInterval] = partition(activities, (a) =>
+    isBefore(new Date(a.date), startDate),
   );
 
   const sharesAtStart = calcCurrentShares(activitiesBeforeInterval);
