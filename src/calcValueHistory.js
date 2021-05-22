@@ -32,14 +32,15 @@ module.exports = function (activities, quotes, interval, i) {
   const quotesNormalized = normalizeQuotes(quotes, dateArr);
 
   let sharesStorage = sharesAtStart;
-  let priceStorage = quotesNormalized[0].price;
   const valueOfHoldingOverTime = dateArr.map((day, i) => {
+    const currentPrice = quotesNormalized[i].price;
+
     const beforeIntervalActivity = {
       type: 'Buy',
       date: day,
-      price: priceStorage,
+      price: currentPrice,
       shares: sharesStorage,
-      amount: sharesStorage * priceStorage,
+      amount: sharesStorage * currentPrice,
     };
 
     const todaysActivities = activitiesInInterval.filter((a) => day === a.date);
@@ -49,7 +50,6 @@ module.exports = function (activities, quotes, interval, i) {
     const { purchaseValue } = calcPurchasePrice(purchasesUntilNow);
 
     sharesStorage = calcCurrentShares(activitiesUntilNow);
-    priceStorage = quotesNormalized[i + 1]?.price;
 
     return purchaseValue;
   });
