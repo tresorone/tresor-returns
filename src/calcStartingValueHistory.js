@@ -1,6 +1,7 @@
 const partition = require('lodash/partition');
 const sumBy = require('lodash/sumBy');
 const isBefore = require('date-fns/isBefore');
+const isAfter = require('date-fns/isAfter');
 
 const calcInventoryPurchasesFIFO = require('./calcInventoryPurchasesFIFO');
 const calcCurrentShares = require('./calcCurrentShares');
