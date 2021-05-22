@@ -2,9 +2,10 @@ const partition = require('lodash/partition');
 const isBefore = require('date-fns/isBefore');
 const Big = require('big.js');
 
-const calcCurrentShares = require('./calcCurrentShares');
-
 const { applySplitMultiplier, getDateArr, normalizeQuotes } = require('../utils');
+const calcInventoryPurchasesFIFO = require('./calcInventoryPurchasesFIFO');
+const calcCurrentShares = require('./calcCurrentShares');
+const calcPurchasePrice = require('./calcPurchasePrice');
 
 module.exports = function (activities, quotes, interval, i) {
   if (activities.length === 0) {
@@ -30,19 +31,27 @@ module.exports = function (activities, quotes, interval, i) {
   // get normalized quotes (so every day of dateArr has a price)
   const quotesNormalized = normalizeQuotes(quotes, dateArr);
 
-  let sharesStorage = Big(sharesAtStart);
-  const valueOfHoldingOverTime = dateArr.map((d, i) => {
-    const day = d;
+  let sharesStorage = sharesAtStart;
+  let priceStorage = quotesNormalized[0].price;
+  const valueOfHoldingOverTime = dateArr.map((day, i) => {
+    const beforeIntervalActivity = {
+      type: 'Buy',
+      date: day,
+      price: priceStorage,
+      shares: sharesStorage,
+      amount: sharesStorage * priceStorage,
+    };
+
     const todaysActivities = activitiesInInterval.filter((a) => day === a.date);
-    const sharesDelta = calcCurrentShares(todaysActivities);
+    const activitiesUntilNow = [...todaysActivities, beforeIntervalActivity];
+    const { purchases: purchasesUntilNow } = calcInventoryPurchasesFIFO(activitiesUntilNow);
 
-    const todaysShares = sharesStorage.plus(Big(sharesDelta));
-    sharesStorage = todaysShares;
+    const { purchaseValue } = calcPurchasePrice(purchasesUntilNow);
 
-    const price = quotesNormalized[i].price || 0;
-    const value = +todaysShares * price;
+    sharesStorage = calcCurrentShares(activitiesUntilNow);
+    priceStorage = quotesNormalized[i + 1]?.price;
 
-    return value;
+    return purchaseValue;
   });
 
   return {
