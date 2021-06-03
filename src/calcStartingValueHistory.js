@@ -36,12 +36,13 @@ module.exports = function (activities, interval, priceAtStart) {
 
   const startValueHistory = dateArr.map((d, i) => {
     const [activitiesUntilNow] = partition(activitiesInInterval, (a) => !isAfter(new Date(a.date), new Date(d)));
+    activitiesUntilNow.unshift(beforeIntervalActivity);
 
     // interval data, including the purchases before the interval as one starting purchase activity
-    const { purchases: purchasesForInterval, realizedGains } = calcInventoryPurchasesFIFO([
-      beforeIntervalActivity,
-      ...activitiesUntilNow,
-    ]);
+    const { purchases: purchasesForInterval, realizedGains } = calcInventoryPurchasesFIFO(
+      activitiesUntilNow,
+      startDate,
+    );
 
     // starting value is the value of the holding at the beginning of the interval
     const { purchaseValue: startingValue } = calcPurchasePrice(purchasesForInterval);
