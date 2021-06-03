@@ -50,7 +50,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
       }
 
       if (remaining <= 0) {
-        // pop purchases without shares from stack, calculate against next one
+        // pop purchase without shares from stack, calculate against next one
         purchases.shift();
       }
 
