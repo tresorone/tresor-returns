@@ -44,7 +44,7 @@ module.exports = function (activities, quotes, interval, i) {
     };
 
     const todaysActivities = activitiesInInterval.filter((a) => day === a.date);
-    const activitiesUntilNow = [...todaysActivities, beforeIntervalActivity];
+    const activitiesUntilNow = [beforeIntervalActivity, ...todaysActivities];
     const { purchases: purchasesUntilNow } = calcInventoryPurchasesFIFO(activitiesUntilNow);
 
     const { purchaseValue } = calcPurchasePrice(purchasesUntilNow);

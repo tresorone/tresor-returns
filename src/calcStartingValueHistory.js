@@ -39,8 +39,8 @@ module.exports = function (activities, interval, priceAtStart) {
 
     // interval data, including the purchases before the interval as one starting purchase activity
     const { purchases: purchasesForInterval, realizedGains } = calcInventoryPurchasesFIFO([
-      ...activitiesUntilNow,
       beforeIntervalActivity,
+      ...activitiesUntilNow,
     ]);
 
     // starting value is the value of the holding at the beginning of the interval
