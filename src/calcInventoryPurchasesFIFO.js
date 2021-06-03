@@ -1,12 +1,12 @@
-const cloneDeep = require('lodash/cloneDeep')
-const reverse = require('lodash/reverse')
-const filter = require('lodash/filter')
+const cloneDeep = require('lodash/cloneDeep');
+const reverse = require('lodash/reverse');
+const filter = require('lodash/filter');
 
-const Big = require('big.js')
+const Big = require('big.js');
 
-const { isBefore } = require('date-fns')
+const { isBefore } = require('date-fns');
 
-module.exports = function calcInventoryPurchasesFIFO (activities, startDate) {
+module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   // this function calculates the purchases that have been made to
   // accumulate the CURRENT inventory of shares
   // It's basically purchases minus sales
@@ -17,51 +17,50 @@ module.exports = function calcInventoryPurchasesFIFO (activities, startDate) {
   // the capital that was withdrawn that way within the interval
   // as it's properly looping through FIFO style already
 
-  const sales = cloneDeep(
-    reverse(activities.filter(a => ['Sell', 'TransferOut'].includes(a.type)))
-  )
-  const purchases = cloneDeep(
-    reverse(activities.filter(a => ['Buy', 'TransferIn'].includes(a.type)))
-  )
+  const sales = cloneDeep(reverse(activities.filter((a) => ['Sell', 'TransferOut'].includes(a.type))));
+  const purchases = cloneDeep(reverse(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type))));
 
-  let realized = 0
-  let capitalWithdrawn = 0
+  let realizedGains = 0;
+  let capitalWithdrawn = 0;
 
-  sales.forEach(({ shares, price, date, type }) => {
+  sales.forEach(({ shares, price: sellPrice, date, type }) => {
     // loop through each sale, then subtract the sold shares from the first buy(s)
     // That's the FIFO principle (First in first out)
 
-    const subtract = (j, sellShares) => {
-      if (!purchases[j]) {
-        return
+    const subtractSalesFromFirstPurchase = (soldShares) => {
+      const purchaseToCalculateAgainst = purchases[0];
+
+      if (purchaseToCalculateAgainst) {
+        return;
       }
 
-      const buyShares = purchases[j].shares
-      const buyPrice = purchases[j].price
+      const purchaseShares = purchaseToCalculateAgainst.shares;
+      const purchasePrice = purchaseToCalculateAgainst.price;
 
-      const remaining = +Big(buyShares).minus(Big(sellShares))
-      purchases[j].shares = remaining
+      const remainingShares = +Big(purchaseShares).minus(Big(soldShares));
 
       // only count the realized gain if it was inside the given interval
       if (!isBefore(new Date(date), startDate)) {
         // TransferOut does not create "realized Gains"
         if (type === 'Sell') {
-          realized += (price - buyPrice) * Math.min(buyShares, sellShares)
+          realizedGains += (sellPrice - purchasePrice) * Math.min(purchaseShares, soldShares);
         }
 
-        capitalWithdrawn += buyPrice * Math.min(buyShares, sellShares)
+        capitalWithdrawn += purchasePrice * Math.min(purchaseShares, soldShares);
       }
 
-      if (remaining === 0) {
-        purchases.shift()
-      } else if (remaining < 0) {
-        purchases.shift()
-        subtract(j, Math.abs(remaining))
+      if (remaining <= 0) {
+        // pop purchases without shares from stack, calculate against next one
+        purchases.shift();
       }
-    }
 
-    subtract(0, shares)
-  })
+      if (remaining < 0) {
+        subtractSalesFromFirstPurchase(Math.abs(remainingShares));
+      }
+    };
 
-  return { realizedGains: realized, purchases, capitalWithdrawn }
-}
+    subtractSalesFromFirstPurchase(shares);
+  });
+
+  return { realizedGains, purchases, capitalWithdrawn };
+};
