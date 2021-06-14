@@ -30,7 +30,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
     const subtractSalesFromFirstPurchase = (soldShares) => {
       const purchaseToCalculateAgainst = purchases[0];
 
-      if (purchaseToCalculateAgainst) {
+      if (!purchaseToCalculateAgainst) {
         return;
       }
 
