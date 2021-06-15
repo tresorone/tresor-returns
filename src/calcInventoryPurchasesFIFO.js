@@ -21,7 +21,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   const purchases = cloneDeep(reverse(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type))));
 
   let realized = 0;
-  let capitalWithdrawn = 0;
+  let sellAmount = 0;
   let transferOutAmount = 0;
 
   sales.forEach(({ shares, price, date, type }) => {
@@ -44,7 +44,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
         // TransferOut does not create "realized Gains"
         if (type === 'Sell') {
           realized += (price - buyPrice) * Math.min(buyShares, sellShares);
-          capitalWithdrawn += buyPrice * Math.min(buyShares, sellShares);
+          sellAmount += buyPrice * Math.min(buyShares, sellShares);
         } else if (type === 'TransferOut') {
           transferOutAmount += buyPrice * Math.min(buyShares, sellShares);
         }
@@ -61,5 +61,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
     subtract(0, shares);
   });
 
-  return { realizedGains: realized, purchases, capitalWithdrawn, transferOutAmount };
+  const capitalWithdrawn = sellAmount + transferOutAmount;
+
+  return { realizedGains: realized, purchases, capitalWithdrawn, transferOutAmount, sellAmount };
 };
