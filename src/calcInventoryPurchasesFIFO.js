@@ -61,7 +61,6 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
     subtract(0, shares);
   });
 
-  // sumit ist n richtig süßer
   const capitalWithdrawn = sellAmount + transferOutAmount;
 
   return { realizedGains: realized, purchases, capitalWithdrawn, transferOutAmount, sellAmount };
