@@ -43,7 +43,10 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
       if (!isBefore(new Date(date), startDate)) {
         // TransferOut does not create "realized Gains"
         if (type === 'Sell') {
+          // realized gains through sales
           realized += (price - buyPrice) * Math.min(buyShares, sellShares);
+
+          // ! sellAmount is the capital widthdran through sales
           sellAmount += buyPrice * Math.min(buyShares, sellShares);
         } else if (type === 'TransferOut') {
           transferOutAmount += buyPrice * Math.min(buyShares, sellShares);

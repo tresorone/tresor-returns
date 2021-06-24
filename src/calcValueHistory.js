@@ -31,18 +31,10 @@ module.exports = function (activities, quotes, interval, i) {
   // get normalized quotes (so every day of dateArr has a price)
   const quotesNormalized = normalizeQuotes(quotes, dateArr);
 
-  // calc invested capital before interval
-  const activitiesForInvestedValueBeforeInterval = activitiesBeforeInterval
-    .filter((a) => ['Sell', 'Buy'].includes(a.type))
-    .map((a) => {
-      return {
-        ...a,
-        amount: a.type === 'Sell' ? a.amount * -1 : a.amount,
-      };
-    });
-
   // calc invested capital at the start of the interval
-  let investedStorage = sumBy(activitiesForInvestedValueBeforeInterval, 'amount');
+  const { purchases: purchasesBeforeInterval } = calcInventoryPurchasesFIFO(activitiesBeforeInterval);
+  const investedBeforeInterval = sumBy(purchasesBeforeInterval, 'amount');
+  let investedStorage = investedBeforeInterval;
 
   // invested capital over time
   const investedInHoldingOverTime = [];
@@ -67,6 +59,8 @@ module.exports = function (activities, quotes, interval, i) {
 
     sharesStorage = calcCurrentShares(activitiesUntilNow);
 
+    // TODO: use todaysActivities and calcInventoryPurchasesFIFO to get todays purchases and sum the amount to get the invested value
+    // TODO: but not sure if its correct yet ... I might need unit tests for this
     // also store the invested amount (based solely on activities) over time
     const activitiesForInvestedValue = todaysActivities
       .filter((a) => ['Sell', 'Buy'].includes(a.type))
