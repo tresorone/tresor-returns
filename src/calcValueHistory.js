@@ -1,6 +1,5 @@
 const partition = require('lodash/partition');
 const isBefore = require('date-fns/isBefore');
-const Big = require('big.js');
 
 const { applySplitMultiplier, getDateArr, normalizeQuotes } = require('../utils');
 const calcInventoryPurchasesFIFO = require('./calcInventoryPurchasesFIFO');
