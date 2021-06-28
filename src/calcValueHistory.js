@@ -1,4 +1,3 @@
-const sumBy = require('lodash/sumBy');
 const partition = require('lodash/partition');
 const isBefore = require('date-fns/isBefore');
 
