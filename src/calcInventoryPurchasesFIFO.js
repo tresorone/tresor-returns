@@ -21,8 +21,8 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   const purchases = cloneDeep(reverse(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type))));
 
   let realized = 0;
-  let sellAmount = 0;
-  let transferOutAmount = 0;
+  let capitalWidthdrawnViaSales = 0;
+  let capitalWithdrawnViaTransferOut = 0;
 
   sales.forEach(({ shares, price, date, type }) => {
     // loop through each sale, then subtract the sold shares from the first buy(s)
@@ -46,10 +46,9 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
           // realized gains through sales
           realized += (price - buyPrice) * Math.min(buyShares, sellShares);
 
-          // ! sellAmount is the capital widthdran through sales
-          sellAmount += buyPrice * Math.min(buyShares, sellShares);
+          capitalWidthdrawnViaSales += buyPrice * Math.min(buyShares, sellShares);
         } else if (type === 'TransferOut') {
-          transferOutAmount += buyPrice * Math.min(buyShares, sellShares);
+          capitalWithdrawnViaTransferOut += buyPrice * Math.min(buyShares, sellShares);
         }
       }
 
@@ -64,7 +63,15 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
     subtract(0, shares);
   });
 
-  const capitalWithdrawn = sellAmount + transferOutAmount;
+  const capitalWithdrawn = capitalWidthdrawnViaSales + capitalWithdrawnViaTransferOut;
 
-  return { realizedGains: realized, purchases, capitalWithdrawn, transferOutAmount, sellAmount };
+  return {
+    realizedGains: realized,
+    purchases,
+    capitalWithdrawn,
+    transferOutAmount: capitalWithdrawnViaTransferOut, // deprecated
+    capitalWithdrawnViaTransferOut,
+    sellAmount: capitalWidthdrawnViaSales, // deprecated
+    capitalWidthdrawnViaSales,
+  };
 };
