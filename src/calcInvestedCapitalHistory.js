@@ -13,15 +13,15 @@ module.exports = function (activities, interval) {
   }
 
   // adjust shares bought/sold by splits that happened in the past
-  const tempActivities = applySplitMultiplier(activities);
+  const splitAdjustedActivities = applySplitMultiplier(activities);
 
   // add "buyAmount" do sales data
-  const adjustedActivities = calcSalesDataFIFO(tempActivities);
+  const fifoActivities = calcSalesDataFIFO(splitAdjustedActivities);
 
   // create an array of all days from today to the first activity
   // we ignore the passed interval here because the calculation needs to happen across the entire activities array
   // with the passed interval, we will just cut off the resulting array
-  const earliestActivity = minBy(adjustedActivities, (a) => new Date(a.date));
+  const earliestActivity = minBy(fifoActivities, (a) => new Date(a.date));
   const dateArr = getDateArr({
     start: earliestActivity.date,
     end: format(new Date(), 'yyyy-MM-dd'),
@@ -35,7 +35,7 @@ module.exports = function (activities, interval) {
     const thatDay = format(new Date(d), 'yyyy-MM-dd');
 
     // find activities from thatDay and add the buy amounts and subtract a sales original buyAmount to get the capitalFlow
-    const activitiesForInvestedValue = adjustedActivities
+    const activitiesForInvestedValue = fifoActivities
       .filter((a) => a.date === thatDay)
       .filter((a) => ['Sell', 'Buy'].includes(a.type))
       .map((a) => {
