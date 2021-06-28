@@ -1,10 +1,8 @@
 const sumBy = require('lodash/sumBy');
-const partition = require('lodash/partition');
-const isBefore = require('date-fns/isBefore');
 
 const { applySplitMultiplier, getDateArr, normalizeQuotes } = require('../utils');
 const { format } = require('date-fns');
-const { cloneDeep, orderBy, subtract } = require('lodash');
+const { cloneDeep, orderBy } = require('lodash');
 const Big = require('big.js');
 
 function calcSalesDataFIFO(activities) {
