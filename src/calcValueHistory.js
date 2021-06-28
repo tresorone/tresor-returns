@@ -31,14 +31,6 @@ module.exports = function (activities, quotes, interval, i) {
   // get normalized quotes (so every day of dateArr has a price)
   const quotesNormalized = normalizeQuotes(quotes, dateArr);
 
-  // calc invested capital at the start of the interval
-  const { purchases: purchasesBeforeInterval } = calcInventoryPurchasesFIFO(activitiesBeforeInterval);
-  const investedBeforeInterval = sumBy(purchasesBeforeInterval, 'amount');
-  let investedStorage = investedBeforeInterval;
-
-  // invested capital over time
-  const investedInHoldingOverTime = [];
-
   let sharesStorage = sharesAtStart;
   const valueOfHoldingOverTime = dateArr.map((day, i) => {
     const currentPrice = quotesNormalized[i].price;
@@ -59,28 +51,11 @@ module.exports = function (activities, quotes, interval, i) {
 
     sharesStorage = calcCurrentShares(activitiesUntilNow);
 
-    // TODO: use todaysActivities and calcInventoryPurchasesFIFO to get todays purchases and sum the amount to get the invested value
-    // TODO: but not sure if its correct yet ... I might need unit tests for this
-    // also store the invested amount (based solely on activities) over time
-    const activitiesForInvestedValue = todaysActivities
-      .filter((a) => ['Sell', 'Buy'].includes(a.type))
-      .map((a) => {
-        return {
-          ...a,
-          amount: a.type === 'Sell' ? a.amount * -1 : a.amount,
-        };
-      });
-
-    // increase invested capital storage for next iteration and push into history
-    investedStorage += sumBy(activitiesForInvestedValue, 'amount');
-    investedInHoldingOverTime.push(investedStorage);
-
     return purchaseValue;
   });
 
   return {
     history: valueOfHoldingOverTime,
-    investedHistory: investedInHoldingOverTime,
     dates: dateArr,
   };
 };
