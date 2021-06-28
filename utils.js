@@ -96,6 +96,7 @@ function getPreviousValue(arr, i) {
 }
 
 function calcSalesDataFIFO(activities) {
+  // order asc - it's necessary for a FIFO loop. earliest/oldest activity is first in the array. Latest/newest is last
   activities = orderBy(cloneDeep(activities), 'date', 'asc');
 
   // we will make changes to sales that should be reflected in the activities collection
