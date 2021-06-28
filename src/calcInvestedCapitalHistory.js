@@ -1,70 +1,8 @@
 const sumBy = require('lodash/sumBy');
-
-const { applySplitMultiplier, getDateArr, normalizeQuotes } = require('../utils');
+const minBy = require('lodash/minBy');
 const { format } = require('date-fns');
-const { cloneDeep, orderBy } = require('lodash');
-const Big = require('big.js');
 
-function calcSalesDataFIFO(activities) {
-  activities = orderBy(cloneDeep(activities), 'date', 'asc');
-
-  // we will make changes to sales that should be reflected in the activities collection
-  const sales = activities.filter((a) => ['Sell', 'TransferOut'].includes(a.type));
-
-  // we clone purchases again as the changes we will make below are temporary and should not be returned
-  const purchases = cloneDeep(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type)));
-
-  /**
-   * Alright, in here we will loop through sales
-   * and then start with the first purchase to see how much we paid originally
-   * for the shares we are selling here
-   */
-  sales.forEach((sale) => {
-    const { shares } = sale;
-    sale.buyAmount = 0;
-
-    // alright let's do the FIFO magic in here
-    function calc(sellShares) {
-      const purchase = purchases[0];
-      if (!purchase) {
-        return;
-      }
-
-      // get the shares and the price of the first purchase
-      const buyShares = purchase.shares;
-      const buyPrice = purchase.price;
-
-      // check how many shares were actually sold in this purchase
-      const sharesSoldInThisPurchase = Math.min(buyShares, sellShares);
-
-      // these are the remaining shares, in case we sold more shares than we bought in this purchase
-      // this means there are more purchases where we need to calc the remaining shares against
-      const remainingShares = +Big(buyShares).minus(Big(sellShares));
-
-      // store the remaining shares on the purchase - for the next sale that will happen
-      purchase.shares = remainingShares;
-
-      // store the amount of this purchase to our sale
-      sale.buyAmount += buyPrice * sharesSoldInThisPurchase;
-
-      // if no shares are left (all of this purchase was sold in the sale), remove the purchase
-      if (remainingShares <= 0) {
-        purchases.shift();
-      }
-
-      // if the remaining shares are negative (ie we sold more than we bought in this purchase)
-      // restart this calculation with the remaining shares as "sellShares"
-      if (remainingShares < 0) {
-        calc(Math.abs(remainingShares));
-      }
-    }
-
-    // kick FIFO off
-    calc(shares);
-  });
-
-  return activities;
-}
+const { applySplitMultiplier, getDateArr, calcSalesDataFIFO } = require('../utils');
 
 module.exports = function (activities, interval) {
   if (activities.length === 0) {
@@ -81,7 +19,14 @@ module.exports = function (activities, interval) {
   activities = calcSalesDataFIFO(activities);
 
   // create an array of all days from today to the first activity
-  const dateArr = getDateArr(interval);
+  // we ignore the passed interval here because the calculation needs to happen across the entire activities array
+  // with the passed interval, we will just cut off the resulting array
+  const earliestActivity = minBy(activities, (a) => new Date(a.date));
+  const dateArr = getDateArr({
+    start: earliestActivity.date,
+    end: format(new Date(), 'yyyy-MM-dd'),
+  });
+  const requestedDateArr = getDateArr(interval);
 
   const capitalHistory = [];
   let investedStorage = 0;
@@ -106,7 +51,7 @@ module.exports = function (activities, interval) {
   });
 
   return {
-    capitalHistory,
-    dates: dateArr,
+    capitalHistory: capitalHistory.filter((v, i) => requestedDateArr.includes(dateArr[i])),
+    dates: requestedDateArr,
   };
 };
