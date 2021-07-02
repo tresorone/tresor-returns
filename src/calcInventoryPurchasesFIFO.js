@@ -70,7 +70,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   return {
     realizedGains: realized,
     purchases,
-    capitalWithdrawn: capitalWithdrawn,
+    capitalWithdrawn,
     transferOutAmount: capitalWithdrawnViaTransferOut, // deprecated
     capitalWithdrawnViaTransferOut,
     sellAmount: capitalWidthdrawnViaSales, // deprecated
