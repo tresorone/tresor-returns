@@ -26,8 +26,6 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   let capitalWidthdrawnViaSales = 0;
   let capitalWithdrawnViaTransferOut = 0;
 
-  console.log(purchases, sales);
-
   sales.forEach(({ shares, price, date, type }) => {
     // loop through each sale, then subtract the sold shares from the first buy(s)
     // That's the FIFO principle (First in first out)
@@ -51,7 +49,6 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
           realized += (price - buyPrice) * Math.min(buyShares, sellShares);
 
           capitalWidthdrawnViaSales += buyPrice * Math.min(buyShares, sellShares);
-          console.log(buyPrice, buyShares, capitalWidthdrawnViaSales);
         } else if (type === 'TransferOut') {
           capitalWithdrawnViaTransferOut += buyPrice * Math.min(buyShares, sellShares);
         }
