@@ -1,6 +1,5 @@
 const cloneDeep = require('lodash/cloneDeep');
-const reverse = require('lodash/reverse');
-const filter = require('lodash/filter');
+const orderBy = require('lodash/orderBy');
 
 const Big = require('big.js');
 
@@ -17,12 +16,17 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   // the capital that was withdrawn that way within the interval
   // as it's properly looping through FIFO style already
 
-  const sales = cloneDeep(reverse(activities.filter((a) => ['Sell', 'TransferOut'].includes(a.type))));
-  const purchases = cloneDeep(reverse(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type))));
+  // order asc - it's necessary for a FIFO loop. earliest/oldest activity is first in the array. Latest/newest is last
+  orderedActivities = orderBy(cloneDeep(activities), 'date', 'asc');
+
+  const sales = orderedActivities.filter((a) => ['Sell', 'TransferOut'].includes(a.type));
+  const purchases = orderedActivities.filter((a) => ['Buy', 'TransferIn'].includes(a.type));
 
   let realized = 0;
   let capitalWidthdrawnViaSales = 0;
   let capitalWithdrawnViaTransferOut = 0;
+
+  console.log(purchases, sales);
 
   sales.forEach(({ shares, price, date, type }) => {
     // loop through each sale, then subtract the sold shares from the first buy(s)
@@ -47,6 +51,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
           realized += (price - buyPrice) * Math.min(buyShares, sellShares);
 
           capitalWidthdrawnViaSales += buyPrice * Math.min(buyShares, sellShares);
+          console.log(buyPrice, buyShares, capitalWidthdrawnViaSales);
         } else if (type === 'TransferOut') {
           capitalWithdrawnViaTransferOut += buyPrice * Math.min(buyShares, sellShares);
         }
@@ -68,7 +73,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   return {
     realizedGains: realized,
     purchases,
-    capitalWithdrawn,
+    capitalWithdrawn: capitalWithdrawn,
     transferOutAmount: capitalWithdrawnViaTransferOut, // deprecated
     capitalWithdrawnViaTransferOut,
     sellAmount: capitalWidthdrawnViaSales, // deprecated
