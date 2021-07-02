@@ -1,6 +1,5 @@
 const cloneDeep = require('lodash/cloneDeep');
-const reverse = require('lodash/reverse');
-const filter = require('lodash/filter');
+const orderBy = require('lodash/orderBy');
 
 const Big = require('big.js');
 
@@ -17,8 +16,11 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   // the capital that was withdrawn that way within the interval
   // as it's properly looping through FIFO style already
 
-  const sales = cloneDeep(reverse(activities.filter((a) => ['Sell', 'TransferOut'].includes(a.type))));
-  const purchases = cloneDeep(reverse(activities.filter((a) => ['Buy', 'TransferIn'].includes(a.type))));
+  // order asc - it's necessary for a FIFO loop. earliest/oldest activity is first in the array. Latest/newest is last
+  orderedActivities = orderBy(cloneDeep(activities), (a) => new Date(a), 'asc');
+
+  const sales = orderedActivities.filter((a) => ['Sell', 'TransferOut'].includes(a.type));
+  const purchases = orderedActivities.filter((a) => ['Buy', 'TransferIn'].includes(a.type));
 
   let realized = 0;
   let capitalWidthdrawnViaSales = 0;
