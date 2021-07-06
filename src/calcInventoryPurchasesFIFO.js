@@ -17,7 +17,7 @@ module.exports = function calcInventoryPurchasesFIFO(activities, startDate) {
   // as it's properly looping through FIFO style already
 
   // order asc - it's necessary for a FIFO loop. earliest/oldest activity is first in the array. Latest/newest is last
-  orderedActivities = orderBy(cloneDeep(activities), (a) => new Date(a), 'asc');
+  orderedActivities = orderBy(cloneDeep(activities), (a) => new Date(a.date), 'asc');
 
   const sales = orderedActivities.filter((a) => ['Sell', 'TransferOut'].includes(a.type));
   const purchases = orderedActivities.filter((a) => ['Buy', 'TransferIn'].includes(a.type));
